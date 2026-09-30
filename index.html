@@ -21,13 +21,13 @@
     </header>
 
     <section id="loginView" class="card login-card">
-      <h2>ورود مدیر</h2>
-      <p class="muted">برای دسترسی به اطلاعات مالی وارد شوید.</p>
+      <h2>ورود بدون رمز 🔐</h2>
+      <p class="muted">ایمیل خودت را وارد کن تا لینک ورود مستقیم برایت ارسال شود.</p>
       <form id="loginForm">
-        <label>ایمیل<input id="email" type="email" required autocomplete="username"></label>
-        <label>رمز عبور<input id="password" type="password" required autocomplete="current-password"></label>
-        <button class="primary" type="submit">ورود</button>
+        <label>ایمیل<input id="email" type="email" required autocomplete="email" placeholder="example@email.com"></label>
+        <button class="primary" type="submit">ارسال لینک ورود</button>
       </form>
+      <p id="loginMessage" class="muted hidden"></p>
     </section>
 
     <section id="appView" class="hidden">
