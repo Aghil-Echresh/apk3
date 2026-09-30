@@ -64,21 +64,55 @@ async function addCustomer(e){
  e.preventDefault();const {data,error}=await sb.from("customers").insert({user_id:user.id,name:$("customerName").value.trim(),phone:$("customerPhone").value.trim(),note:$("customerNote").value.trim()}).select().single();
  if(error)return toast(error.message);$("customerDialog").close();$("customerForm").reset();await loadCustomers();await selectCustomer(data.id);toast("مشتری اضافه شد");
 }
+let pendingLoginEmail="";
+let otpCooldownUntil=0;
+
 async function requestPasswordlessLogin(e){
  e.preventDefault();
- const email=$("email").value.trim();
+ const email=$("email").value.trim().toLowerCase();
  if(!email)return toast("ایمیل را وارد کن");
- const {error}=await sb.auth.signInWithOtp({
-   email,
-   options:{
-     emailRedirectTo:window.location.origin+window.location.pathname,
-     shouldCreateUser:true
-   }
- });
+ const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
  if(error)return toast(error.message);
+ pendingLoginEmail=email;
+ $("email").disabled=true;
  $("loginForm").classList.add("hidden");
- $("loginMessage").textContent="لینک ورود به ایمیل شما ارسال شد. ایمیل را باز کنید و روی لینک ورود بزنید.";
+ $("otpForm").classList.remove("hidden");
+ $("loginMessage").textContent="کد ۶ رقمی به ایمیل شما ارسال شد. کد را وارد کن.";
  $("loginMessage").classList.remove("hidden");
+ $("otp").focus();
+ startOtpCooldown();
+}
+
+async function verifyEmailOtp(e){
+ e.preventDefault();
+ const token=$("otp").value.replace(/\\D/g,"").slice(0,6);
+ if(token.length!==6)return toast("کد باید ۶ رقمی باشد");
+ const {error}=await sb.auth.verifyOtp({email:pendingLoginEmail,token,type:"email"});
+ if(error)return toast("کد ورود نادرست یا منقضی شده است");
+ pendingLoginEmail="";
+ $("otpForm").reset();
+ $("otpForm").classList.add("hidden");
+ $("loginMessage").classList.add("hidden");
+ $("email").disabled=false;
+}
+
+async function resendEmailOtp(){
+ if(Date.now()<otpCooldownUntil||!pendingLoginEmail)return;
+ const {error}=await sb.auth.signInWithOtp({email:pendingLoginEmail,options:{shouldCreateUser:true}});
+ if(error)return toast(error.message);
+ toast("کد جدید ارسال شد");
+ startOtpCooldown();
+}
+
+function startOtpCooldown(){
+ otpCooldownUntil=Date.now()+60000;
+ const tick=()=>{
+   const remaining=Math.max(0,Math.ceil((otpCooldownUntil-Date.now())/1000));
+   $("resendOtp").textContent=remaining?("ارسال دوباره ("+remaining+")"):"ارسال دوباره کد";
+   $("resendOtp").disabled=remaining>0;
+   if(remaining)setTimeout(tick,1000);
+ };
+ tick();
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 $("loginForm").onsubmit=requestPasswordlessLogin;
