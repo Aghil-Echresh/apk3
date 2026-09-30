@@ -11,12 +11,13 @@ create table if not exists public.customers (
 create table if not exists public.transactions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  customer_id uuid not null references public.customers(id) on delete cascade,
+  customer_id uuid not null,
   type text not null check (type in ('deposit','withdraw')),
   amount numeric(14,0) not null check (amount > 0),
   note text,
   receipt_path text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  unique (id, user_id)
 );
 create index if not exists customers_user_id_idx on public.customers(user_id);
 create index if not exists transactions_user_id_idx on public.transactions(user_id);
