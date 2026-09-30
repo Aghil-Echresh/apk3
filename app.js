@@ -64,7 +64,23 @@ async function addCustomer(e){
  e.preventDefault();const {data,error}=await sb.from("customers").insert({user_id:user.id,name:$("customerName").value.trim(),phone:$("customerPhone").value.trim(),note:$("customerNote").value.trim()}).select().single();
  if(error)return toast(error.message);$("customerDialog").close();$("customerForm").reset();await loadCustomers();await selectCustomer(data.id);toast("مشتری اضافه شد");
 }
+async function requestPasswordlessLogin(e){
+ e.preventDefault();
+ const email=$("email").value.trim();
+ if(!email)return toast("ایمیل را وارد کن");
+ const {error}=await sb.auth.signInWithOtp({
+   email,
+   options:{
+     emailRedirectTo:window.location.origin+window.location.pathname,
+     shouldCreateUser:true
+   }
+ });
+ if(error)return toast(error.message);
+ $("loginForm").classList.add("hidden");
+ $("loginMessage").textContent="لینک ورود به ایمیل شما ارسال شد. ایمیل را باز کنید و روی لینک ورود بزنید.";
+ $("loginMessage").classList.remove("hidden");
+}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-$("loginForm").onsubmit=async e=>{e.preventDefault();const {error}=await sb.auth.signInWithPassword({email:$("email").value,password:$("password").value});if(error)toast(error.message)};
+$("loginForm").onsubmit=requestPasswordlessLogin;
 $("logoutBtn").onclick=()=>sb.auth.signOut();$("transactionForm").onsubmit=addTransaction;$("customerForm").onsubmit=addCustomer;
 $("newCustomerBtn").onclick=()=>$("customerDialog").showModal();$("cancelCustomer").onclick=()=>$("customerDialog").close();$("searchInput").oninput=renderCustomers;init();
