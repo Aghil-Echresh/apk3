@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>دفتر حساب | سوپرمارکت کمیل</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <main class="container">
+    <header class="topbar">
+      <div>
+        <h1>سوپرمارکت کمیل</h1>
+        <p>دفتر حساب آنلاین مشتریان</p>
+      </div>
+      <button id="logoutBtn" class="ghost hidden">خروج</button>
+    </header>
+
+    <section id="loginView" class="card login-card">
+      <h2>ورود مدیر</h2>
+      <p class="muted">برای دسترسی به اطلاعات مالی وارد شوید.</p>
+      <form id="loginForm">
+        <label>ایمیل<input id="email" type="email" required autocomplete="username"></label>
+        <label>رمز عبور<input id="password" type="password" required autocomplete="current-password"></label>
+        <button class="primary" type="submit">ورود</button>
+      </form>
+    </section>
+
+    <section id="appView" class="hidden">
+      <div class="stats">
+        <div class="stat"><span>مشتریان</span><strong id="customerCount">۰</strong></div>
+        <div class="stat"><span>واریز امروز</span><strong id="todayDeposit">۰</strong></div>
+        <div class="stat"><span>برداشت امروز</span><strong id="todayWithdraw">۰</strong></div>
+        <div class="stat"><span>مانده کل</span><strong id="totalBalance">۰</strong></div>
+      </div>
+
+      <div class="grid">
+        <section class="card">
+          <div class="section-head"><h2>مشتریان</h2><button id="newCustomerBtn" class="secondary">+ مشتری جدید</button></div>
+          <input id="searchInput" class="search" placeholder="جستجوی نام یا شماره موبایل">
+          <div id="customersList" class="list"></div>
+        </section>
+
+        <section class="card">
+          <div id="emptyState" class="empty">
+            <div class="emoji">👤</div>
+            <h2>یک مشتری را انتخاب کن</h2>
+            <p>برای ثبت واریز یا برداشت، ابتدا مشتری را انتخاب کن.</p>
+          </div>
+
+          <div id="customerPanel" class="hidden">
+            <div class="section-head">
+              <div>
+                <h2 id="selectedName"></h2>
+                <p id="selectedPhone" class="muted"></p>
+              </div>
+              <span id="balanceBadge" class="balance"></span>
+            </div>
+
+            <form id="transactionForm" class="transaction-form">
+              <label>نوع
+                <select id="type"><option value="deposit">واریز</option><option value="withdraw">برداشت</option></select>
+              </label>
+              <label>مبلغ (تومان)<input id="amount" type="number" min="1" step="1000" required></label>
+              <label>توضیحات<input id="note" maxlength="250" placeholder="مثلاً تسویه حساب"></label>
+              <label>عکس رسید
+                <input id="receipt" type="file" accept="image/jpeg,image/png,image/webp">
+              </label>
+              <button class="primary" type="submit">ثبت تراکنش</button>
+            </form>
+
+            <h3>تاریخچه تراکنش‌ها</h3>
+            <div id="transactionsList" class="transactions"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="customerDialog">
+    <form method="dialog" id="customerForm" class="dialog-card">
+      <h2>مشتری جدید</h2>
+      <label>نام مشتری<input id="customerName" required maxlength="100"></label>
+      <label>شماره موبایل<input id="customerPhone" maxlength="20" inputmode="tel"></label>
+      <label>توضیحات<input id="customerNote" maxlength="250"></label>
+      <div class="dialog-actions">
+        <button type="button" class="ghost" id="cancelCustomer">انصراف</button>
+        <button class="primary" type="submit">ذخیره</button>
+      </div>
+    </form>
+  </dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
