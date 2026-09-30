@@ -20,8 +20,6 @@ create table if not exists public.transactions (
   created_at timestamptz not null default now()
 );
 
--- Ownership-safe relationship: a transaction can only point to a customer
--- belonging to the same authenticated user.
 do $$
 begin
   if not exists (
@@ -48,6 +46,7 @@ end $$;
 create index if not exists customers_user_id_idx on public.customers(user_id);
 create index if not exists transactions_user_id_idx on public.transactions(user_id);
 create index if not exists transactions_customer_id_idx on public.transactions(customer_id);
+create index if not exists transactions_customer_user_idx on public.transactions(customer_id, user_id);
 
 alter table public.customers enable row level security;
 alter table public.transactions enable row level security;
@@ -55,16 +54,16 @@ alter table public.transactions enable row level security;
 drop policy if exists "customers own rows" on public.customers;
 create policy "customers own rows"
 on public.customers
-for all
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+for all to authenticated
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
 
 drop policy if exists "transactions own rows" on public.transactions;
 create policy "transactions own rows"
 on public.transactions
-for all
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+for all to authenticated
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
 
 insert into storage.buckets (id, name, public)
 values ('receipts', 'receipts', false)
@@ -76,7 +75,7 @@ on storage.objects
 for insert to authenticated
 with check (
   bucket_id = 'receipts'
-  and (storage.foldername(name))[1] = auth.uid()::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
 );
 
 drop policy if exists "receipt read own folder" on storage.objects;
@@ -85,5 +84,5 @@ on storage.objects
 for select to authenticated
 using (
   bucket_id = 'receipts'
-  and (storage.foldername(name))[1] = auth.uid()::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
 );
