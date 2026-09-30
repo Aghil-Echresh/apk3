@@ -55,7 +55,10 @@ async function addTransaction(e){
    const up=await sb.storage.from("receipts").upload(receipt_path,file,{contentType:file.type,upsert:false});if(up.error)return toast(up.error.message);
  }
  const {error}=await sb.from("transactions").insert({user_id:user.id,customer_id:selected.id,type:$("type").value,amount,note:$("note").value.trim(),receipt_path});
- if(error)return toast(error.message);$("transactionForm").reset();toast("تراکنش با موفقیت ثبت شد");await selectCustomer(selected.id);await loadStats();
+ if(error){
+   if(receipt_path) await sb.storage.from("receipts").remove([receipt_path]);
+   return toast(error.message);
+ }$("transactionForm").reset();toast("تراکنش با موفقیت ثبت شد");await selectCustomer(selected.id);await loadStats();
 }
 async function addCustomer(e){
  e.preventDefault();const {data,error}=await sb.from("customers").insert({user_id:user.id,name:$("customerName").value.trim(),phone:$("customerPhone").value.trim(),note:$("customerNote").value.trim()}).select().single();
