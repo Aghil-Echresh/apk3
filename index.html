@@ -22,10 +22,15 @@
 
     <section id="loginView" class="card login-card">
       <h2>ورود بدون رمز 🔐</h2>
-      <p class="muted">ایمیل خودت را وارد کن تا لینک ورود مستقیم برایت ارسال شود.</p>
+      <p class="muted">ایمیل خودت را وارد کن تا کد ۶ رقمی ورود برایت ارسال شود.</p>
       <form id="loginForm">
         <label>ایمیل<input id="email" type="email" required autocomplete="email" placeholder="example@email.com"></label>
-        <button class="primary" type="submit">ارسال لینک ورود</button>
+        <button class="primary" type="submit">ارسال کد ۶ رقمی</button>
+      </form>
+      <form id="otpForm" class="hidden">
+        <label>کد ۶ رقمی<input id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="۱۲۳۴۵۶" required></label>
+        <button class="primary" type="submit">تأیید و ورود</button>
+        <button class="ghost" type="button" id="resendOtp" disabled>ارسال دوباره (۶۰)</button>
       </form>
       <p id="loginMessage" class="muted hidden"></p>
     </section>
