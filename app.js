@@ -83,9 +83,13 @@ async function requestPasswordlessLogin(e){
  startOtpCooldown();
 }
 
+function normalizeDigits(value){
+ return String(value??"").replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+}
+
 async function verifyEmailOtp(e){
  e.preventDefault();
- const token=$("otp").value.replace(/\\D/g,"").slice(0,6);
+ const token=normalizeDigits($("otp").value).replace(/\\D/g,"").slice(0,6);
  if(token.length!==6)return toast("کد باید ۶ رقمی باشد");
  const {error}=await sb.auth.verifyOtp({email:pendingLoginEmail,token,type:"email"});
  if(error)return toast("کد ورود نادرست یا منقضی شده است");
