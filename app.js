@@ -115,6 +115,6 @@ function startOtpCooldown(){
  tick();
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-$("loginForm").onsubmit=requestPasswordlessLogin;
+$("loginForm").onsubmit=requestPasswordlessLogin;$("otpForm").onsubmit=verifyEmailOtp;$("resendOtp").onclick=resendEmailOtp;
 $("logoutBtn").onclick=()=>sb.auth.signOut();$("transactionForm").onsubmit=addTransaction;$("customerForm").onsubmit=addCustomer;
 $("newCustomerBtn").onclick=()=>$("customerDialog").showModal();$("cancelCustomer").onclick=()=>$("customerDialog").close();$("searchInput").oninput=renderCustomers;init();
