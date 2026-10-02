@@ -1,6 +1,8 @@
 const cfg=window.SUPABASE_CONFIG||{};
 const sb=supabase.createClient(cfg.url,cfg.anonKey);
 let user=null,customers=[],selected=null,transactions=[];
+const GITHUB_USER="Aghil-Echresh";
+const GITHUB_API="https://api.github.com";
 
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat("fa-IR").format(Number(n)||0)+" تومان";
@@ -12,9 +14,32 @@ async function init(){
   const {data:{session}}=await sb.auth.getSession(); user=session?.user||null;setLoggedIn(!!user);if(user)await loadCustomers();
   sb.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;setLoggedIn(!!user);if(user)loadCustomers()});
 }
+async function loadGitHub(){
+  const status=$("githubStatus");
+  try{
+    const [p,r]=await Promise.all([
+      fetch(GITHUB_API+"/users/"+GITHUB_USER,{headers:{"Accept":"application/vnd.github+json"}}),
+      fetch(GITHUB_API+"/users/"+GITHUB_USER+"/repos?per_page=100&sort=updated",{headers:{"Accept":"application/vnd.github+json"}})
+    ]);
+    if(!p.ok||!r.ok)throw new Error("GitHub API error");
+    const profile=await p.json(), repos=await r.json();
+    const stars=repos.reduce((n,x)=>n+(x.stargazers_count||0),0);
+    const visible=repos.filter(x=>!x.fork).slice(0,6);
+    $("ghRepos").textContent=new Intl.NumberFormat("fa-IR").format(profile.public_repos);
+    $("ghFollowers").textContent=new Intl.NumberFormat("fa-IR").format(profile.followers);
+    $("ghStars").textContent=new Intl.NumberFormat("fa-IR").format(stars);
+    $("ghUpdated").textContent=visible[0]?dateFa(visible[0].updated_at):"—";
+    $("githubProjects").innerHTML=visible.map(x=>`<a class="github-project" href="${x.html_url}" target="_blank" rel="noopener"><strong>${esc(x.name)}</strong><span>⭐ ${x.stargazers_count} · ${esc(x.language||"Code")}</span></a>`).join("");
+    status.textContent="متصل ✓"; status.className="api-status online";
+  }catch(e){
+    status.textContent="خطا در اتصال"; status.className="api-status offline";
+    $("githubProjects").innerHTML='<p class="muted">اتصال به GitHub API برقرار نشد.</p>';
+  }
+}
+
 async function loadCustomers(){
  const {data,error}=await sb.from("customers").select("*").order("name");
- if(error)return toast(error.message);customers=data||[];renderCustomers();await loadStats();
+ if(error)return toast(error.message);customers=data||[];renderCustomers();await loadStats();loadGitHub();
 }
 function renderCustomers(){
  const q=$("searchInput").value.trim().toLowerCase(),arr=customers.filter(c=>c.name.toLowerCase().includes(q)||(c.phone||"").includes(q));
